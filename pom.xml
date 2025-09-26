@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Palautetaan Spring Bootin perusmääritykset, jotka hallitsevat riippuvuuksien versioita -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>ws.lumo</groupId>
+    <artifactId>lumo-adapter-slack</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>lumo-adapter-slack</name>
+    <description>Lumo AI Adapters Slack Adapter</description>
+
+    <properties>
+        <java.version>23</java.version>
+        <spring-ai.version>1.0.2</spring-ai.version>
+    </properties>
+
+    <repositories>
+        <!-- Nämä ovat pakollisia, jotta Spring AI -kirjastot löytyvät,
+             koska niitä ei ole julkaistu Mavenin keskusvarastoon. -->
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <!-- Virallinen Slack API Java SDK. Tämä on 'compile'-skoopissa, koska se on
+             tämän moduulin ydinriippuvuus, eikä sen oleteta löytyvän isäntäsovelluksesta. -->
+        <dependency>
+            <groupId>com.slack.api</groupId>
+            <artifactId>slack-api-client</artifactId>
+            <!-- Lisätään puuttuva versionumero. Spring Boot ei hallitse tämän kirjaston versiota. -->
+            <version>1.38.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ws.lumo</groupId>
+            <artifactId>lumo-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+                <!-- Lombok on hyödyllinen myös adaptereissa, jos niissä on DTO-luokkia. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Web-riippuvuudet (esim. @RestController).
+             Skooppi 'provided', koska isäntäsovellus (lumo-service)
+             tarjoaa varsinaisen ajonaikaisen ympäristön. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- Tuodaan Spring AI:n riippuvuuksien hallinta (BOM).
+         Tämä on paras tapa varmistaa, että kaikki Spring AI -moduulit
+         ovat yhteensopivia ja että Maven löytää ne oikein. -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Tuodaan Spring Bootin riippuvuuksien hallinta (BOM).
+                 Tämä määrittelee versiot kaikille Spring-ekosysteemin kirjastoille. -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${project.parent.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Tuodaan Spring AI:n riippuvuuksien hallinta. -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Varmistetaan, että Lombokin annotaatioprosessori ajetaan.
+                         Vaikka spring-boot-parent usein hoitaa tämän, erillinen
+                         määritys kirjastomoduulissa takaa toimivuuden. -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
